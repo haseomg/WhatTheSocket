@@ -36,7 +36,7 @@ public class Enter extends AppCompatActivity {
             public void onClick(View v) {
                 Log.i(TAG, "enter button onClick()");
 
-                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                Intent intent = new Intent(getApplicationContext(), Select.class);
 
                 String userName = name.getText().toString();
                 Log.i(TAG, "userName Check : " + userName);

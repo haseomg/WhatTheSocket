@@ -52,7 +52,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private String TAG = "MainActivity";
 
-    private String getUsername, getRoomName;
+    private String getUsername, getYourname, getRoomName, getSharedRoomName, getSharedUserName;
     static Context chatCtx;
 
     int count = 0;
@@ -63,7 +63,6 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
 
         initial();
-        setChatSocket();
         setSend();
 
 //        btn_conn.setOnClickListener(new View.OnClickListener() { // 연결 버튼 클릭
@@ -85,10 +84,21 @@ public class ChatActivity extends AppCompatActivity {
     } // onCreate END
 
     void initial() {
+        chatCtx = ChatActivity.this;
+
+        shared = getSharedPreferences("USER", MODE_PRIVATE);
+        editor = shared.edit();
+
+        getSharedUserName = shared.getString("name","");
+
         Intent intent = getIntent();
         getUsername = intent.getStringExtra("username");
+        getYourname = intent.getStringExtra("yourname");
+        Log.i(TAG, "getUsername check : " + getUsername);
+        Log.i(TAG, "getYourname check : " + getYourname);
 
-        chatCtx = ChatActivity.this;
+        editor.putString("name", getUsername);
+        editor.commit();
 
         options = new IO.Options();
         Log.i(TAG, "options check : " + options);
@@ -98,11 +108,24 @@ public class ChatActivity extends AppCompatActivity {
         Log.i(TAG, "chatSocket IO.socket (url, options) check : " + chatSocket);
         connect();
 
-        shared = getSharedPreferences("USER", MODE_PRIVATE);
-        editor = shared.edit();
 
-        editor.putString("name", getUsername);
-        editor.putString("room", getRoomName);
+        getSharedRoomName = shared.getString("room", "");
+        Log.i(TAG, "getRoomName check : " + getSharedRoomName);
+
+
+        getRoomName = getSharedRoomName;
+
+        if (getSharedRoomName == null || getSharedRoomName.equals("")) {
+            getRoomName = getUsername + "_" + getYourname;
+            editor.putString("room", getRoomName);
+            Log.i(TAG, "getRoomName check : " + getRoomName);
+        }
+        if (getSharedRoomName.contains(getRoomName)) {
+            getRoomName = getYourname + "_" + getUsername;
+//            editor.putString("room", getRoomName);
+            Log.i(TAG, "getRoomName check : " + getRoomName);
+        } // if END
+
         editor.commit();
 
         chatAdapter = new Adapter(this, chatList);
@@ -122,7 +145,10 @@ public class ChatActivity extends AppCompatActivity {
         Log.i(TAG, "options.transports check : " + options.transports);
         chatSocket = IO.socket(uri, options);
         Log.i(TAG, "chatSocket IO.socket (url, options) check : " + chatSocket);
+
+        setChatSocket();
     }
+
 
     void connect() {
         try {
@@ -184,7 +210,7 @@ public class ChatActivity extends AppCompatActivity {
             Log.i(TAG, "setChatSocket try");
             Log.i(TAG, "username check ------- " + getUsername);
             userId.put("username", getUsername);
-            userId.put("roomName", "room_example");
+            userId.put("roomName", getRoomName);
             chatSocket.emit("connect_user", userId);
         } catch (JSONException e) {
             Log.i(TAG, "setChatSocket catch error 2 : " + e);
@@ -250,7 +276,7 @@ public class ChatActivity extends AppCompatActivity {
             jsonObject.put("profile_image", "example");
             jsonObject.put("date_time", hourNminute);
             Log.i("json put", "date_time check : " + hourNminute);
-            jsonObject.put("roomName", "room_example");
+            jsonObject.put("roomName", getRoomName);
             jsonObject.put("today", getToday);
             Log.i("json put", "today check : " + getToday);
         } catch (JSONException e) {
@@ -293,6 +319,10 @@ public class ChatActivity extends AppCompatActivity {
             Log.i(TAG, "date_time check : " + date_time);
             room_name = data.getString("roomName");
             Log.i(TAG, "roomName check : " + room_name);
+
+            if (room_name.contains(getSharedRoomName)) {
+
+            }
 
 
             ChatModel format = new ChatModel(name, script, profile_image, date_time);
@@ -347,10 +377,36 @@ public class ChatActivity extends AppCompatActivity {
         } // if chatSocket != null END
     } // msgFromServer Method END
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG, "onStart");
+    } // onStart END
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "onResume");
+    } // onResume END
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "onPause");
+    } // onPause END
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "onStop");
+    } // onStop END
+
     protected void onDestroy() { // 어플리케이션 종료시 실행
         super.onDestroy();
         // chatSocket.emit("disconnect",null);
         chatSocket.disconnect(); // 소켓을 닫는다
+        editor.putString("room", "");
+        editor.commit();
     } // onDestroy END
 
 //    // TODO getUsername, message 같이 보내주기
