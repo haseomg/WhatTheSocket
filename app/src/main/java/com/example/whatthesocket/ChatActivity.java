@@ -35,6 +35,12 @@ public class ChatActivity extends AppCompatActivity {
 //    EditText msg;
 //    String msgStr;
 
+    // 1:1 채팅할 때 서로를 명확히 알 수 있는 키 값을 만들고
+    // 채팅 DB에서 키값에 맞게 테이블 두개에서 join해서 정보를 클라이언트로 가져와 뿌려준다.
+    // 1:n 채팅은?
+    // 키 값에서 본인만 알고 나머지는 전부 상대인데, 내 이름만 알고 있으면 되긴 해
+    // 아티스트는 채팅 아이템을 다르게 구성하구! 우선 버블부터 알아봐야겠다 어떤 방식인지
+
     private SharedPreferences shared;
     private SharedPreferences.Editor editor;
 
