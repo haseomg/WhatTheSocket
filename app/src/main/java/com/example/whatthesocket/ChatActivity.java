@@ -7,11 +7,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +67,9 @@ public class ChatActivity extends AppCompatActivity {
     private String getUsername, getYourname, getRoomName, getSharedRoomName, getSharedUserName;
     static Context chatCtx;
 
+    private boolean isKeyboardOpen;
+    private int keyboardHeight;
+
     int count = 0;
 
     @Override
@@ -95,7 +104,7 @@ public class ChatActivity extends AppCompatActivity {
         shared = getSharedPreferences("USER", MODE_PRIVATE);
         editor = shared.edit();
 
-        getSharedUserName = shared.getString("name","");
+        getSharedUserName = shared.getString("name", "");
 
         Intent intent = getIntent();
         getUsername = intent.getStringExtra("username");
@@ -139,11 +148,82 @@ public class ChatActivity extends AppCompatActivity {
 
         chat_recyclerView = findViewById(R.id.recyclerView);
         chat_recyclerView.setAdapter(chatAdapter);
-        chat_recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        chatAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+//            @Override
+//            public void onItemRangeInserted(int positionStart, int itemCount) {
+//                super.onItemRangeInserted(positionStart, itemCount);
+//
+//                int lastVisiblePosition = ((LinearLayoutManager) chat_recyclerView.getLayoutManager()).findLastVisibleItemPosition();
+//
+//                if (lastVisiblePosition == -1 || ((positionStart) >= (chatAdapter.getItemCount() -1 ) &&
+//                        lastVisiblePosition == (positionStart -1))) {
+//                    chat_recyclerView.scrollToPosition(positionStart);
+//                } // if END
+//            } // onItemRangeInserted END
+//        }); // Observer END
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
+        // TODO. KEYBOARD NO TOUCH RECYCLERVIEW
+//        isKeyboardOpen = false;
+//        keyboardHeight = 0;
+//        onWindowFocusChanged(isKeyboardOpen);
+//        // 키보드 상태에 따른 화면 조정
+//            if (isKeyboardOpen) {
+//                chat_recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//                    @Override
+//                    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                        layoutManager.setStackFromEnd(true);
+//                    } // onLayoutChange END
+//                }); // if END
+//            } else {
+//                chat_recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//                    @Override
+//                    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                        layoutManager.setStackFromEnd(false);
+//                    } // Listener END
+//                }); // onLayoutChange END
+//            } // else END
+        layoutManager.setStackFromEnd(true);
+        chat_recyclerView.setLayoutManager(layoutManager);
         chat_recyclerView.setHasFixedSize(true);
+//        chat_recyclerView.setLayoutParams(new LinearLayout.LayoutParams
+//                (ViewGroup.LayoutParams.MATCH_PARENT, getWindow().getDecorView().getRootView()
+//                        .getHeight() - getWindow().getDecorView().getRootView().getRootView()
+//                        .getSystemUiVisibility()));
+
+//        final View activityRootView = findViewById(R.id.root_layout);
+////        // activityRootView의 레이아웃 변화를 감지하는 리스너
+//        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//            @Override
+//            public void onGlobalLayout() {
+//                Rect r = new Rect();
+//                // 화면에서 보이는 영역의 정보를 Rect 객체인 r에 저장
+//                activityRootView.getWindowVisibleDisplayFrame(r);
+//                // 화면 전체 높이를 가져와 screenHeight에 저장
+//                int screenHeight = activityRootView.getRootView().getHeight();
+//                Log.i(TAG, "screenHeight check : " + screenHeight);
+//
+//                // 키보드가 올라온 경우 마지막 메시지로 이동
+//
+//                // 화면 전체 높이에서 보이는 영역의 높이를 뺀 것으로, 키보드 높이를 구한다.
+//                int heightDifference = screenHeight - (r.bottom - r.top);
+//                // 키보드 높이를 화면체 높이로 나누어 스케일 값을 구한다.
+//                float keyboardHeight = (float) heightDifference / screenHeight;
+//                Log.i(TAG, "keyboardHeight check : " + keyboardHeight);
+//                if (keyboardHeight > 0.15) {
+//                    int lastIndex = chatAdapter.getItemCount() - 1;
+//                    Log.i(TAG, "item lastIndex check : " + lastIndex);
+//                    if (lastIndex >= 0) {
+//                        chat_recyclerView.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
+//                    } // if END
+//                } // if END
+//            } // onGlobalLayout END
+//        }); // Listener END
 
         chatMsg = findViewById(R.id.chatMsg);
+        chatMsg.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         send = findViewById(R.id.sendBtn);
+        send.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 
         options = new IO.Options();
         Log.i(TAG, "options check : " + options);
@@ -332,10 +412,30 @@ public class ChatActivity extends AppCompatActivity {
 
 
             ChatModel format = new ChatModel(name, script, profile_image, date_time);
+//            ArrayList<ChatModel> chatList = chatAdapter.getDataList();
             chatAdapter.addItem(format);
             chatAdapter.notifyDataSetChanged();
+//            int position = chatList.size() -1;
+//            chatAdapter.notifyItemInserted(position);
             chat_recyclerView.scrollToPosition(chatList.size() - 1);
-            Log.i(TAG, "for scrollToPosition - chatList.size check : " + chatList.size());
+
+
+//            chat_recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//                @Override
+//                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                    if (bottom < oldBottom) {
+//                        chat_recyclerView.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                if (chatAdapter.getItemCount() > 0) {
+//                                    int index = chatAdapter.getItemCount() - 1;
+//                                    chat_recyclerView.smoothScrollToPosition(index);
+//                                } // if END
+//                            } // run END
+//                        }); // Listener END
+//                    } // if END
+//                } // onLayoutChange END
+//            }); // Listener END
 
         } catch (JSONException e) {
             Log.i(TAG, "onNewMessage catch error : " + e);
@@ -414,6 +514,35 @@ public class ChatActivity extends AppCompatActivity {
         editor.putString("room", "");
         editor.commit();
     } // onDestroy END
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        if (hasFocus) {
+            checkKeyboardHeight();
+        } else {
+            isKeyboardOpen = false;
+        } // else END
+    } // onWindowFocusChanged END
+
+    // 키보드 높이 확인 메서드
+    // 키보드 높이 확인 메서드
+    private void checkKeyboardHeight() {
+        // 뷰 전체에 대한 사이즈를 가진 Rect 객체 생성
+        Rect r = new Rect();
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
+
+        // 측정된 높이 계산
+        int screenHeight = getWindow().getDecorView().getRootView().getHeight();
+        int heightDifference = screenHeight - r.bottom;
+
+        // 이전 높이와 다르다면 상태 변경
+        if (keyboardHeight != heightDifference) {
+            isKeyboardOpen = heightDifference > 100; //임계 (100픽셀)
+            keyboardHeight = heightDifference;
+        }
+    }
 
 //    // TODO getUsername, message 같이 보내주기
 //    void send() {

@@ -4,58 +4,48 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#607B60"
+    android:id="@+id/root_layout"
     tools:context=".ChatActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="650dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
+        android:descendantFocusability="beforeDescendants"
+        app:layout_constraintBottom_toTopOf="@+id/input_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!--    <View-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="3dp"-->
-    <!--        android:background="#464444"-->
-    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintHorizontal_bias="0.0"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toTopOf="@+id/recyclerView"-->
-    <!--        app:layout_constraintVertical_bias="0.85" />-->
+    <LinearLayout
+        android:id="@+id/input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <EditText
-        android:id="@+id/chatMsg"
-        android:layout_width="290dp"
-        android:layout_height="80dp"
-        android:paddingLeft="10dp"
-        android:hint="Write your message"
-        android:fontFamily="sans-serif-light"
-        android:textSize="18sp"
-        android:textColor="#9AB79A"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+        <EditText
+            android:id="@+id/chatMsg"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Write your message"
+            android:fontFamily="sans-serif-light"
+            android:textSize="18sp"
+            android:textColor="#9AB79A" />
 
-    <Button
-        android:id="@+id/sendBtn"
-        android:layout_width="120dp"
-        android:layout_height="65dp"
-        android:background="#33451F"
-        android:fontFamily="sans-serif-light"
-        android:text="SEND"
-        android:textSize="25sp"
-        android:textColor="#9AB79A"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/chatMsg"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
+        <Button
+            android:id="@+id/sendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#33451F"
+            android:fontFamily="sans-serif-light"
+            android:text="SEND"
+            android:textSize="25sp"
+            android:textColor="#9AB79A" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

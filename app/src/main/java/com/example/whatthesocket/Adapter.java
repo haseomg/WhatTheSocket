@@ -149,4 +149,8 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         } // else END
     } // getItemViewType END
 
+    public ArrayList<ChatModel> getDataList() {
+        return  chatList;
+    }
+
 } // ChatAdapter END
