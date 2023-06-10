@@ -46,7 +46,8 @@
     <TextView
         android:id="@+id/your_chat_Text"
         android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:maxWidth="300dp"
+        android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:background="#33451F"
         android:fontFamily="sans-serif-condensed-medium"
@@ -55,6 +56,7 @@
         android:scrollHorizontally="false"
         android:text="your chat"
         android:textSize="20dp"
+        android:singleLine="false"
         android:textColor="#9AB79A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

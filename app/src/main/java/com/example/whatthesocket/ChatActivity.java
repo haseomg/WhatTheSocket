@@ -55,7 +55,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private boolean hasConn = false;
     private Socket chatSocket;
-    private URI uri = URI.create("http://13.125.216.244:3000/");
+    private URI uri = URI.create("http://13.125.205.228:3000/");
     private IO.Options options;
 
     private ArrayList<ChatModel> chatList = new ArrayList<>();
@@ -129,17 +129,18 @@ public class ChatActivity extends AppCompatActivity {
 
 
         getRoomName = getSharedRoomName;
+        getRoomName = getUsername + "_" + getYourname;
 
         if (getSharedRoomName == null || getSharedRoomName.equals("")) {
             getRoomName = getUsername + "_" + getYourname;
             editor.putString("room", getRoomName);
             Log.i(TAG, "getRoomName check : " + getRoomName);
         }
-        if (getSharedRoomName.contains(getRoomName)) {
-            getRoomName = getYourname + "_" + getUsername;
-//            editor.putString("room", getRoomName);
-            Log.i(TAG, "getRoomName check : " + getRoomName);
-        } // if END
+//        if (getSharedRoomName.contains(getRoomName)) {
+//            getRoomName = getYourname + "_" + getUsername;
+////            editor.putString("room", getRoomName);
+//            Log.i(TAG, "getRoomName check : " + getRoomName);
+//        } // if END
 
         editor.commit();
 
@@ -279,7 +280,7 @@ public class ChatActivity extends AppCompatActivity {
 
     void setChatSocket() {
         try {
-            chatSocket = IO.socket("http://13.125.216.244:3000/");
+            chatSocket = IO.socket("http://13.125.205.228:3000/");
             Log.i(TAG, "setChatSocket IO.socket check : " + chatSocket);
             chatSocket.connect();
 
