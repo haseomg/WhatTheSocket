@@ -1,13 +1,17 @@
 package com.example.whatthesocket;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -131,16 +135,16 @@ public class ChatActivity extends AppCompatActivity {
         getRoomName = getSharedRoomName;
         getRoomName = getUsername + "_" + getYourname;
 
-        if (getSharedRoomName == null || getSharedRoomName.equals("")) {
-            getRoomName = getUsername + "_" + getYourname;
-            editor.putString("room", getRoomName);
-            Log.i(TAG, "getRoomName check : " + getRoomName);
-        }
-//        if (getSharedRoomName.contains(getRoomName)) {
-//            getRoomName = getYourname + "_" + getUsername;
-////            editor.putString("room", getRoomName);
+//        if (getSharedRoomName == null || getSharedRoomName.equals("")) {
+//            getRoomName = getUsername + "_" + getYourname;
+//            editor.putString("room", getRoomName);
 //            Log.i(TAG, "getRoomName check : " + getRoomName);
-//        } // if END
+//        }
+        if (getSharedRoomName.contains(getRoomName)) {
+            getRoomName = getYourname + "_" + getUsername;
+//            editor.putString("room", getRoomName);
+            Log.i(TAG, "getRoomName check : " + getRoomName);
+        } // if END
 
         editor.commit();
 
@@ -288,6 +292,9 @@ public class ChatActivity extends AppCompatActivity {
 
             chatSocket.on("connect_user", onNewUser);
             chatSocket.on("chat_message", onNewMessage);
+            chatSocket.on("notify", onNewNotification);
+
+            joinRoom();
 
         } catch (Exception e) {
             Log.i(TAG, "setChatSocket catch error 1 : " + e);
@@ -308,6 +315,10 @@ public class ChatActivity extends AppCompatActivity {
         send.setOnClickListener(v -> sendMessage());
     } // setChatSocket Method END
 
+    private void joinRoom() {
+        chatSocket.emit("join");
+    }
+
     private void setSend() {
         send.setOnClickListener(v -> sendMessage());
     } // setSend END
@@ -325,6 +336,8 @@ public class ChatActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(message)) {
             return;
         } // if END
+
+        int is_read = 1;
 
         SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
         String getTime = sdfTime.format(date);
@@ -366,6 +379,7 @@ public class ChatActivity extends AppCompatActivity {
             jsonObject.put("roomName", getRoomName);
             jsonObject.put("today", getToday);
             Log.i("json put", "today check : " + getToday);
+            jsonObject.put("is_read", is_read);
         } catch (JSONException e) {
             e.printStackTrace();
         } // catch END
@@ -389,33 +403,35 @@ public class ChatActivity extends AppCompatActivity {
         Log.i(TAG, "data check : " + data);
         Log.i(TAG, "args check : " + args);
         String name;
-        String script;
-        String profile_image;
-        String date_time;
+        String message;
+        String timestamp;
+        int is_read = 1;
+        String image;
         String room_name;
 
         try {
             Log.i(TAG, "try");
             name = data.getString("name");
             Log.i(TAG, "name check : " + name);
-            script = data.getString("script");
-            Log.i(TAG, "script check : " + script);
-            profile_image = data.getString("profile_image");
-            Log.i(TAG, "profile_image check : " + profile_image);
-            date_time = data.getString("date_time");
-            Log.i(TAG, "date_time check : " + date_time);
+            message = data.getString("script");
+            Log.i(TAG, "script check : " + message);
+            image = data.getString("profile_image");
+            Log.i(TAG, "profile_image check : " + image);
+            timestamp = data.getString("date_time");
+            Log.i(TAG, "date_time check : " + timestamp);
             room_name = data.getString("roomName");
             Log.i(TAG, "roomName check : " + room_name);
-
+            is_read = data.getInt("is_read");
             if (room_name.contains(getSharedRoomName)) {
 
             }
 
 
-            ChatModel format = new ChatModel(name, script, profile_image, date_time);
+            ChatModel format = new ChatModel(name, message, timestamp, is_read, image);
 //            ArrayList<ChatModel> chatList = chatAdapter.getDataList();
             chatAdapter.addItem(format);
             chatAdapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "✉️" ,Toast.LENGTH_SHORT).show();
 //            int position = chatList.size() -1;
 //            chatAdapter.notifyItemInserted(position);
             chat_recyclerView.scrollToPosition(chatList.size() - 1);
@@ -461,6 +477,46 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         } // catch END
     }); // onNewUser END
+
+    // 알림 이벤트 처리
+    private Emitter.Listener onNewNotification = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: 알림 처리를 수행. 토스트 메시지를 표시하거나 알림창을 생성
+                    String receivedMessage = (String) args[0];
+//                    Toast.makeText(getApplicationContext(), "새 알림: " + receivedMessage, Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "✉️" ,Toast.LENGTH_SHORT).show();
+                    noti();
+                } // run END
+            }); // runOnUiThread END
+        } // call END
+    }; // Listener END
+
+    void noti() {
+        // 알림 관리자 객체를 가져옵니다.
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Android Oreo(8.0) 이상에서는 알림 채널이 필요합니다.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "default_notification_channel_id";
+            CharSequence channelName = "Default Channel";
+            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        // 알림을 빌드합니다. 이 예시에서는 아이콘과 제목, 내용만 설정하였습니다.
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "default_notification_channel_id")
+                .setSmallIcon(R.drawable.ic_launcher_foreground) // 아이콘 설정
+                .setContentTitle("✉️") // 제목 설정
+//                .setContentText(receivedMessage) // 내용 설정
+                .setAutoCancel(true); // 사용자가 터치하면 자동으로 알림 제거
+
+        // 알림을 표시하고 고유 ID를 부여합니다. 같은 ID를 사용할 경우 알림이 업데이트됩니다.
+        notificationManager.notify(1, builder.build());
+    }
 
     void msgFromServer() {
         Log.i(TAG, "chatSocket null check : " + chatSocket);

@@ -82,6 +82,7 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Log.i(TAG, "holder instanceof MyHolder");
             ((MyHolder) holder).chat_Text.setText(chatList.get(position).getScript());
             ((MyHolder) holder).chat_Time.setText(chatList.get(position).getDate_time());
+            ((MyHolder) holder).is_read.setText(String.valueOf(chatList.get(position).getIs_read()));
 //            try {
 //                if (chatList.get(position).getDate_time().contains(chatList.get(position).getDate_time())) {
 //                    // 메시지 보낸 시간이 같은 시간이면 같은 시간 메시지 중 맨 마지막 아이템만 시간을 표시해준다.
@@ -107,11 +108,13 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // 친구목록 모델의 변수들 정의하는부분
         public final TextView chat_Text;
         public final TextView chat_Time;
+        public final TextView is_read;
 
         public MyHolder(View itemView) {
             super(itemView);
             chat_Text = itemView.findViewById(R.id.chat_Text);
             chat_Time = itemView.findViewById(R.id.chat_Time);
+            is_read = itemView.findViewById(R.id.is_read_me);
         } // constructor END
     } // MyHolder class END
 

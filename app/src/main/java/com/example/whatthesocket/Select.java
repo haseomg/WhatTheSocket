@@ -74,7 +74,7 @@ public class Select extends AppCompatActivity {
                 editor.commit();
                 startActivity(intent);
             } // onClick END
-        }); // setOnClickListener END
+        }); // setOnClickListener END'
 
         oscar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,9 +194,10 @@ public class Select extends AppCompatActivity {
                 startActivity(intent);
             } // onClick END
         }); // setOnClickListener END
-
-
     } // setButton method END
+    // me
+
+    ;
 
     @Override
     protected void onStart() {
