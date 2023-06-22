@@ -16,13 +16,13 @@ import java.util.ArrayList;
 
 public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context context;
-    private ArrayList<ChatModel> chatList;
+    private ArrayList<ResponseModel> chatList;
     private SharedPreferences preferences;
 
     String TAG = "[ChatAdapter]";
 
-    Adapter(Context context, ArrayList<ChatModel> chatList) {
-        Log.i(TAG, "constructor (context, arraylist)");
+    Adapter(Context context, ArrayList<ResponseModel> chatList) {
+        Log.i(TAG, "Adapter constructor (context, arraylist)");
         this.context = context;
         this.chatList = chatList;
     } // constructor END
@@ -35,7 +35,7 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //
 //    }
 
-    public void addItem(ChatModel item) {
+    public void addItem(ResponseModel item) {
         Log.i(TAG, "addItem Method");
         if (chatList != null) {
             Log.i(TAG, "chatList != null : " + chatList);
@@ -80,9 +80,9 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // onCreateViewHolder에서 리턴받은 뷰홀더가 Holder라면 내채팅, item_my_chat의 뷰들을 초기화 해줌
         if (holder instanceof MyHolder) {
             Log.i(TAG, "holder instanceof MyHolder");
-            ((MyHolder) holder).chat_Text.setText(chatList.get(position).getScript());
-            ((MyHolder) holder).chat_Time.setText(chatList.get(position).getDate_time());
-            ((MyHolder) holder).is_read.setText(String.valueOf(chatList.get(position).getIs_read()));
+            ((MyHolder) holder).chat_Text.setText(chatList.get(position).getMsg());
+            ((MyHolder) holder).chat_Time.setText(chatList.get(position).getTimestamp());
+            ((MyHolder) holder).is_read.setVisibility(View.GONE);
 //            try {
 //                if (chatList.get(position).getDate_time().contains(chatList.get(position).getDate_time())) {
 //                    // 메시지 보낸 시간이 같은 시간이면 같은 시간 메시지 중 맨 마지막 아이템만 시간을 표시해준다.
@@ -97,9 +97,9 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         else if (holder instanceof YourHolder) {
             Log.i(TAG, "holder instanceof YourHolder");
             ((YourHolder) holder).chat_You_Image.setImageResource(R.mipmap.ic_launcher);
-            ((YourHolder) holder).chat_You_Name.setText(chatList.get(position).getName());
-            ((YourHolder) holder).your_chat_Text.setText(chatList.get(position).getScript());
-            ((YourHolder) holder).your_chat_Time.setText(chatList.get(position).getDate_time());
+            ((YourHolder) holder).chat_You_Name.setText(chatList.get(position).getMyName());
+            ((YourHolder) holder).your_chat_Text.setText(chatList.get(position).getMsg());
+            ((YourHolder) holder).your_chat_Time.setText(chatList.get(position).getTimestamp());
         } // else if END
     } // onBindViewHolder END
 
@@ -143,16 +143,16 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         Log.i(TAG, "shared name check : " + preferences.getString("name", ""));
         // 내 아이디와 arraylist의 name이 같다면 내꺼 아니면 상대꺼
-        if (chatList.get(position).name.equals(preferences.getString("name", ""))) {
-            Log.i(TAG, "내 아이디 == chatList.get(position).name : " + chatList.get(position).name);
+        if (chatList.get(position).me.equals(preferences.getString("name", ""))) {
+            Log.i(TAG, "내 아이디 == chatList.get(position).name : " + chatList.get(position).me);
             return 1;
         } else {
-            Log.i(TAG, "내 아이디 != chatList.get(position).name : " + chatList.get(position).name);
+            Log.i(TAG, "내 아이디 != chatList.get(position).name : " + chatList.get(position).me);
             return 2;
         } // else END
     } // getItemViewType END
 
-    public ArrayList<ChatModel> getDataList() {
+    public ArrayList<ResponseModel> getDataList() {
         return  chatList;
     }
 

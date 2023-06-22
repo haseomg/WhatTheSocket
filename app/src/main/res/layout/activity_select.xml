@@ -30,105 +30,155 @@
             android:textSize="30sp" />
     </FrameLayout>
 
-    <Button
-        android:id="@+id/jayden"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Jayden"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameLayout"
-        app:layout_constraintVertical_bias="0.16000003" />
+    <!--    <Button-->
+<!--        android:id="@+id/jayden"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Jayden"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/frameLayout"-->
+<!--        app:layout_constraintVertical_bias="0.16000003" />-->
 
-    <Button
-        android:id="@+id/oscar"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Oscar"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/jayden"
-        app:layout_constraintVertical_bias="0.100000024" />
+<!--    <Button-->
+<!--        android:id="@+id/oscar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Oscar"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/jayden"-->
+<!--        app:layout_constraintVertical_bias="0.100000024" />-->
 
-    <Button
-        android:id="@+id/taron"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Taron"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/oscar"
-        app:layout_constraintVertical_bias="0.13" />
+<!--    <Button-->
+<!--        android:id="@+id/taron"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Taron"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/oscar"-->
+<!--        app:layout_constraintVertical_bias="0.13" />-->
 
-    <Button
-        android:id="@+id/stella"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Stella"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/taron"
-        app:layout_constraintVertical_bias="0.17000002" />
+<!--    <Button-->
+<!--        android:id="@+id/stella"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Stella"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/taron"-->
+<!--        app:layout_constraintVertical_bias="0.17000002" />-->
 
-    <Button
-        android:id="@+id/min"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Min"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stella"
-        app:layout_constraintVertical_bias="0.26" />
+<!--    <Button-->
+<!--        android:id="@+id/min"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Min"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/stella"-->
+<!--        app:layout_constraintVertical_bias="0.26" />-->
 
-    <Button
-        android:id="@+id/bob"
+<!--    <Button-->
+<!--        android:id="@+id/bob"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#607B60"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Bob"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="#9AB79A"-->
+<!--        android:textSize="30sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/min" />-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/chatListRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#607B60"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
-        android:text="Bob"
-        android:textAlignment="center"
-        android:textColor="#9AB79A"
-        android:textSize="30sp"
+        android:layout_height="0dp"
+        android:descendantFocusability="beforeDescendants"
+        app:layout_constraintBottom_toTopOf="@+id/view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:background="#9AB79A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/min" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.88" />
+
+<!--    <EditText-->
+<!--        android:id="@+id/writeChatPersonEditText"-->
+<!--        android:layout_width="250dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:hint="원하는 채팅상대를 적어주세요."-->
+<!--        android:textSize="18sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toStartOf="@+id/enterButton"-->
+<!--        app:layout_constraintHorizontal_bias="0.61"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/view"-->
+<!--        app:layout_constraintVertical_bias="0.43" />-->
+
+<!--    <Button-->
+<!--        android:id="@+id/enterButton"-->
+<!--        android:layout_width="80dp"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:background="#9AB79A"-->
+<!--        android:fontFamily="sans-serif"-->
+<!--        android:text="ENTER"-->
+<!--        android:textColor="#607B60"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.91"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/view"-->
+<!--        app:layout_constraintVertical_bias="0.37" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

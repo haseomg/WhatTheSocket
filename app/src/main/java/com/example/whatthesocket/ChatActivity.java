@@ -31,25 +31,26 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.WebSocket;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChatActivity extends AppCompatActivity {
-
-//    Button btn_conn, btn_send;
-//    TextView tv_text_con, tv_text_from_server, tv_text_from_server2, tv_text_from_server3;
-//    EditText msg;
-//    String msgStr;
-
-    // 1:1 채팅할 때 서로를 명확히 알 수 있는 키 값을 만들고
-    // 채팅 DB에서 키값에 맞게 테이블 두개에서 join해서 정보를 클라이언트로 가져와 뿌려준다.
-    // 1:n 채팅은?
-    // 키 값에서 본인만 알고 나머지는 전부 상대인데, 내 이름만 알고 있으면 되긴 해
-    // 아티스트는 채팅 아이템을 다르게 구성하구! 우선 버블부터 알아봐야겠다 어떤 방식인지
 
     private SharedPreferences shared;
     private SharedPreferences.Editor editor;
@@ -59,20 +60,36 @@ public class ChatActivity extends AppCompatActivity {
 
     private boolean hasConn = false;
     private Socket chatSocket;
-    private URI uri = URI.create("http://13.125.205.228:3000/");
+    private URI uri = URI.create("http://54.180.83.241:3000/");
     private IO.Options options;
 
-    private ArrayList<ChatModel> chatList = new ArrayList<>();
+    private ArrayList<ResponseModel> chatList = new ArrayList<>();
     private Adapter chatAdapter;
     private RecyclerView chat_recyclerView;
 
     private String TAG = "MainActivity";
 
-    private String getUsername, getYourname, getRoomName, getSharedRoomName, getSharedUserName;
+    private OkHttpClient client;
+    private WebSocket webSocket;
+
+    String getUUID, getUsername, getYourname, getRoomName, getSharedUserName, getSharedUUID, makeUUID;
     static Context chatCtx;
+
+    String uuidKey, me, you, from_idx, msg, date_time, image_idx, today;
+    String insertUUID, insertMsg, insertTime, getToday, getTimeToTable, hourNminute;
+    int msg_idx, readCheck;
+
+    String message, timestamp, image, uuidForChat;
+    int is_read = 1;
+    String uuidFromSelect, getSharedMe, getSharedYou;
+
+//    String putMessage, putTime, putToday;
+//    int put_is_read;
 
     private boolean isKeyboardOpen;
     private int keyboardHeight;
+    String uuid;
+    private ServerApi serverApi;
 
     int count = 0;
 
@@ -84,23 +101,15 @@ public class ChatActivity extends AppCompatActivity {
         initial();
         setSend();
 
-//        btn_conn.setOnClickListener(new View.OnClickListener() { // 연결 버튼 클릭
-//            public void onClick(View view) {
-//                Log.i(TAG, "conn onClick");
-//                connect();
-//                if (btn_send.getText().toString().equals("BRING")) {
-//                    btn_send.setText("SEND");
-//                } // if END
-//            } // onClick END
-//        }); // setOnClickListener END
-
-//        btn_send.setOnClickListener(new View.OnClickListener() { // 보내기버튼 클릭
-//            @Override
-//            public void onClick(View view) {
-//                send();
-//            } // onClick END
-//        }); // setOnClickListener END
     } // onCreate END
+
+
+
+
+
+
+
+
 
     void initial() {
         chatCtx = ChatActivity.this;
@@ -108,16 +117,38 @@ public class ChatActivity extends AppCompatActivity {
         shared = getSharedPreferences("USER", MODE_PRIVATE);
         editor = shared.edit();
 
-        getSharedUserName = shared.getString("name", "");
+        serverApi = ApiClient.getApiClient().create(ServerApi.class);
 
         Intent intent = getIntent();
         getUsername = intent.getStringExtra("username");
         getYourname = intent.getStringExtra("yourname");
+        uuidFromSelect = intent.getStringExtra("uuid");
+        Log.i(TAG, "[Shared]getUUID check : " + getUUID);
+
         Log.i(TAG, "getUsername check : " + getUsername);
         Log.i(TAG, "getYourname check : " + getYourname);
+        Log.i(TAG, "getUuidFromSelect check : " + uuidFromSelect);
 
-        editor.putString("name", getUsername);
-        editor.commit();
+//        getUUIDFromTable(getUsername, getYourname);
+        getSharedUserName = shared.getString("name", "");
+        getSharedUUID = shared.getString("UUID", "");
+        getSharedYou = shared.getString("the_other", "");
+        Log.i(TAG, "getSharedUserName check : " + getSharedUserName);
+        Log.i(TAG, "getSharedUUID check : " + getSharedUUID);
+        Log.i(TAG, "getSharedYou check : " + getSharedYou);
+
+        loadChatMessages(getSharedUUID);
+
+//        if (!getSharedUUID.contains(getUsername) && !getSharedUUID.contains(getYourname)) {
+//            getRoomName = getSharedUUID;
+//            Log.i(TAG, "[Shared]getSharedUUID check 1 : " + getSharedUUID);
+//        } else if (uuidForChat != null){
+//            // 받아와야 되는데... DB uuid... db에서 받아온 게 없을 때 uuid 생성
+//            extractingUUID(getUsername, getYourname);
+//            getRoomName = uuid;
+//            Log.i(TAG, "[Shared]getSharedUUID check 2 : " + uuid);
+//        }
+//        editor.commit();
 
         options = new IO.Options();
         Log.i(TAG, "options check : " + options);
@@ -125,26 +156,8 @@ public class ChatActivity extends AppCompatActivity {
         Log.i(TAG, "options.transports check : " + options.transports);
         chatSocket = IO.socket(uri, options);
         Log.i(TAG, "chatSocket IO.socket (url, options) check : " + chatSocket);
-        connect();
+//        connect();
 
-
-        getSharedRoomName = shared.getString("room", "");
-        Log.i(TAG, "getRoomName check : " + getSharedRoomName);
-
-
-        getRoomName = getSharedRoomName;
-        getRoomName = getUsername + "_" + getYourname;
-
-//        if (getSharedRoomName == null || getSharedRoomName.equals("")) {
-//            getRoomName = getUsername + "_" + getYourname;
-//            editor.putString("room", getRoomName);
-//            Log.i(TAG, "getRoomName check : " + getRoomName);
-//        }
-        if (getSharedRoomName.contains(getRoomName)) {
-            getRoomName = getYourname + "_" + getUsername;
-//            editor.putString("room", getRoomName);
-            Log.i(TAG, "getRoomName check : " + getRoomName);
-        } // if END
 
         editor.commit();
 
@@ -237,8 +250,48 @@ public class ChatActivity extends AppCompatActivity {
         chatSocket = IO.socket(uri, options);
         Log.i(TAG, "chatSocket IO.socket (url, options) check : " + chatSocket);
 
+        connect();
         setChatSocket();
     }
+
+    private void loadChatMessages(String uuid) {
+        Log.i(TAG, "loadChatMessages Method");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://54.180.155.66/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ServerApi serverApi = retrofit.create(ServerApi.class);
+
+        Call<List<ResponseModel>> call = serverApi.loadChat(getSharedUUID);
+
+        call.enqueue(new Callback<List<ResponseModel>>() {
+            @Override
+            public void onResponse(Call<List<ResponseModel>> call, Response<List<ResponseModel>> response) {
+                if (!response.isSuccessful()) {
+                    Log.e(TAG, "Request failed : " + response.code());
+                    return;
+                } else {
+                    Log.e(TAG, "Request Success! : " + response.code());
+                    List<ResponseModel> responseModels = response.body();
+                    Log.i(TAG, "getChatData response.body : " + responseModels);
+
+                    chatList.clear();
+//                    for (ResponseModel responseModel : responseModels) {
+//                        String
+//                    }
+                    chatList.addAll(response.body());
+
+                    chatAdapter.notifyDataSetChanged();
+                } // else END
+            } // onResponse END
+
+            @Override
+            public void onFailure(Call<List<ResponseModel>> call, Throwable t) {
+                Log.e(TAG, "onFailure : " + t.getMessage());
+            }
+        });
+    } // method END
 
 
     void connect() {
@@ -284,7 +337,7 @@ public class ChatActivity extends AppCompatActivity {
 
     void setChatSocket() {
         try {
-            chatSocket = IO.socket("http://13.125.205.228:3000/");
+            chatSocket = IO.socket("http://54.180.83.241:3000/");
             Log.i(TAG, "setChatSocket IO.socket check : " + chatSocket);
             chatSocket.connect();
 
@@ -292,7 +345,7 @@ public class ChatActivity extends AppCompatActivity {
 
             chatSocket.on("connect_user", onNewUser);
             chatSocket.on("chat_message", onNewMessage);
-            chatSocket.on("notify", onNewNotification);
+//            chatSocket.on("notify", onNewNotification);
 
             joinRoom();
 
@@ -300,6 +353,10 @@ public class ChatActivity extends AppCompatActivity {
             Log.i(TAG, "setChatSocket catch error 1 : " + e);
         } // catch END
         JSONObject userId = new JSONObject();
+
+        getRoomName = getSharedUUID;
+        insertUUID = getRoomName;
+
         try {
             Log.i(TAG, "setChatSocket try");
             Log.i(TAG, "username check ------- " + getUsername);
@@ -313,23 +370,85 @@ public class ChatActivity extends AppCompatActivity {
         hasConn = true;
 
         send.setOnClickListener(v -> sendMessage());
+//        send.setOnClickListener(v -> insertToTable());
     } // setChatSocket Method END
+
+
+    private void getUUIDFromTable(String me, String you) {
+        Log.i(TAG, "getUUIDFRomToTable Method");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://54.180.155.66/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ServerApi serverApi = retrofit.create(ServerApi.class);
+
+        Call<ResponseModel> call = serverApi.getUUID(me, you);
+
+        call.enqueue(new Callback<ResponseModel>() {
+            @Override
+            public void onResponse(Call<ResponseModel> call, Response<ResponseModel> response) {
+                if (response.isSuccessful()) {
+                    // 성공적인 응답 처리
+                    Toast.makeText(ChatActivity.this, "Data selected successfully", Toast.LENGTH_SHORT).show();
+                    ResponseModel responseModel = response.body();
+                    if (responseModel != null) {
+                        String uuid = responseModel.getUUID();
+
+                        Log.d(TAG, "uuid : " + uuid);
+                        uuidForChat = uuid;
+                        Log.d(TAG, "uuid 2 : " + uuidForChat);
+
+                        editor.putString("UUID", uuidForChat);
+                        editor.commit();
+                    } else {
+                        Log.d(TAG, "uuid : " + "응답 데이터가 null 입니다.");
+                    }
+                } else {
+                    // 실패한 응답 처리
+                    Toast.makeText(ChatActivity.this, "Failed to select data", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseModel> call, Throwable t) {
+                // 에러 처리
+                Toast.makeText(ChatActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     private void joinRoom() {
         chatSocket.emit("join");
     }
 
     private void setSend() {
-        send.setOnClickListener(v -> sendMessage());
+//        send.setOnClickListener(v -> sendMessage());
     } // setSend END
 
     private void sendMessage() {
         Log.i(TAG, "sendMessage Method");
         shared = getSharedPreferences("USER", Context.MODE_PRIVATE);
-        long now = System.currentTimeMillis();
-        Date date = new Date(now);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String getToday = sdf.format(date);
+
+        getTime();
+
+        String fromEditText = chatMsg.getText().toString();
+        insertMsg = fromEditText;
+        String[] getTodayCut = getToday.split("-");
+        String second = getTodayCut[1];
+        String third = getTodayCut[2];
+//        insertTime = todaysel;
+        if (second.contains("0")) {
+            String[] monthCut = second.split("0");
+            String month = monthCut[1];
+            today = month + "." + third + "_" + getTimeToTable;
+//            insertTime = month + "." + third;
+        } else {
+            today = second + "." + third + "_" + getTimeToTable;
+//            insertTime = second + "." + third;
+        }
+        insertTime = today;
+        insertToTable();
 
         String message = chatMsg.getText().toString().trim();
         Log.i(TAG, "message check : " + message);
@@ -339,34 +458,18 @@ public class ChatActivity extends AppCompatActivity {
 
         int is_read = 1;
 
-        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        String getTime = sdfTime.format(date);
-        String[] reTime = getTime.split(":");
-        String hour = reTime[0];
-        String minute = reTime[1];
-        int hourToInt = Integer.parseInt(hour);
-        int minuteToInt = Integer.parseInt(minute);
-        String hourNminute;
-        if (hourToInt > 12) {
-            hourToInt -= 12;
-            String reHour = Integer.toString(hourToInt);
-            hourNminute = "오후 " + reHour + ":" + minute;
-        } else if (hour.equals("00")) {
-            hourToInt += 12;
-            String reHour = Integer.toString(hourToInt);
-            hourNminute = "오전 " + reHour + ":" + minute;
-        } else {
-            String[] zeroCut = hour.split("0");
-            String amHour = zeroCut[1];
-            hourNminute = "오전 " + amHour + ":" + minute;
-        } // else END
-
 //        ChatModel item = new ChatModel(shared.getString("name", ""), chatMsg.getText().toString(), "example", hourNminute);
 //        chatAdapter.addItem(item);
 //        chatAdapter.notifyDataSetChanged();
 
         chatMsg.setText("");
+        // TODO getRoomName 2
 
+//        if (getSharedUUID.contains(getSharedUserName) && getSharedUUID.contains(getSharedYou)) {
+//        if (!uuid.equals(getSharedUUID)) {
+        getRoomName = getSharedUUID;
+        Log.i(TAG, "[Shared]getSharedUUID check 1 : " + getSharedUUID);
+//        }
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("name", getUsername);
@@ -402,12 +505,8 @@ public class ChatActivity extends AppCompatActivity {
 //        JSONObject data = new JSONObject();
         Log.i(TAG, "data check : " + data);
         Log.i(TAG, "args check : " + args);
-        String name;
-        String message;
-        String timestamp;
+        String name, image, room_name, message, timestamp;
         int is_read = 1;
-        String image;
-        String room_name;
 
         try {
             Log.i(TAG, "try");
@@ -422,37 +521,16 @@ public class ChatActivity extends AppCompatActivity {
             room_name = data.getString("roomName");
             Log.i(TAG, "roomName check : " + room_name);
             is_read = data.getInt("is_read");
-            if (room_name.contains(getSharedRoomName)) {
 
-            }
-
-
-            ChatModel format = new ChatModel(name, message, timestamp, is_read, image);
+            ResponseModel format = new ResponseModel(name, message, timestamp, is_read, image);
 //            ArrayList<ChatModel> chatList = chatAdapter.getDataList();
             chatAdapter.addItem(format);
             chatAdapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(), "✉️" ,Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(getApplicationContext(), "✉️", Toast.LENGTH_SHORT).show();
 //            int position = chatList.size() -1;
 //            chatAdapter.notifyItemInserted(position);
             chat_recyclerView.scrollToPosition(chatList.size() - 1);
-
-
-//            chat_recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-//                @Override
-//                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-//                    if (bottom < oldBottom) {
-//                        chat_recyclerView.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                if (chatAdapter.getItemCount() > 0) {
-//                                    int index = chatAdapter.getItemCount() - 1;
-//                                    chat_recyclerView.smoothScrollToPosition(index);
-//                                } // if END
-//                            } // run END
-//                        }); // Listener END
-//                    } // if END
-//                } // onLayoutChange END
-//            }); // Listener END
 
         } catch (JSONException e) {
             Log.i(TAG, "onNewMessage catch error : " + e);
@@ -478,22 +556,68 @@ public class ChatActivity extends AppCompatActivity {
         } // catch END
     }); // onNewUser END
 
-    // 알림 이벤트 처리
-    private Emitter.Listener onNewNotification = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // TODO: 알림 처리를 수행. 토스트 메시지를 표시하거나 알림창을 생성
-                    String receivedMessage = (String) args[0];
-//                    Toast.makeText(getApplicationContext(), "새 알림: " + receivedMessage, Toast.LENGTH_SHORT).show();
-//                    Toast.makeText(getApplicationContext(), "✉️" ,Toast.LENGTH_SHORT).show();
-                    noti();
-                } // run END
-            }); // runOnUiThread END
-        } // call END
-    }; // Listener END
+    private void insertData(String uuid, String me, String you, String from_idx, String msg, int msg_idx, String date_time, int is_read, String image_idx) {
+        Log.i(TAG, "InsertData Method");
+        Call<Void> call = serverApi.insertData(uuid, me, you, from_idx, msg, msg_idx, date_time, is_read, image_idx);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                Log.i(TAG, "InsertData Method onResponse()");
+                if (response.isSuccessful()) {
+                    Log.i(TAG, "InsertData Method onResponse() isSuccessful");
+                    Toast.makeText(ChatActivity.this, "Data inserted successfully", Toast.LENGTH_SHORT).show();
+                    // response ok인데.... 서버 측에도 틀린 코드가 없는데 왜 테이블에 값이 안 들어갈까 ㅠㅠ 다른 서버랑 겹쳐서 였음... ㅂㄷㅂㄷ
+                    Log.i(TAG, "Insert (response success)  and response.body check : " + response.body());
+                } else {
+                    Log.i(TAG, "InsertData Method onResponse() !isSuccessful");
+                    Toast.makeText(ChatActivity.this, "Failed to insert data", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "Insert (response failed)  and response.body check : " + response.body());
+                } // else END
+            } // onResponse END
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(ChatActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            } // onFailure END
+        }); // call.enqueque END
+    } // insertData method END
+
+
+    // TODO. Insert Chat_info To chat_messages table T T Why don't ......
+    private void addData(String uuid, String me, String you, String from_idx, String msg, int msg_idx, String date_time, int is_read, String image_idx) {
+        Log.i(TAG, "insert method addData");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://54.180.155.66/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ServerApi api = retrofit.create(ServerApi.class);
+        Call<ResponseModel> call = api.addData(uuid, me, you, from_idx, msg, msg_idx, date_time, is_read, image_idx);
+
+        call.enqueue(new Callback<ResponseModel>() {
+            @Override
+            public void onResponse(Call<ResponseModel> call, Response<ResponseModel> response) {
+                if (response.isSuccessful()) {
+                    // 성공적인 응답 처리
+                    Toast.makeText(ChatActivity.this, "Data insert successfully", Toast.LENGTH_SHORT).show();
+                    ResponseModel responseModel = response.body();
+                    String response_check = String.valueOf(response.body());
+                    Log.e(TAG, "response.body check : " + responseModel);
+                    Log.d(TAG, "response.body check : " + response_check);
+
+                } else {
+                    // 실패한 응답 처리
+                    Toast.makeText(ChatActivity.this, "Failed insert data", Toast.LENGTH_SHORT).show();
+                } // else END
+            } // onResponse END
+
+            @Override
+            public void onFailure(Call<ResponseModel> call, Throwable t) {
+                // 에러 처리
+                Toast.makeText(ChatActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            } // onFailure END
+        }); // call.enqueque END
+    } // addData END
 
     void noti() {
         // 알림 관리자 객체를 가져옵니다.
@@ -601,67 +725,72 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-//    // TODO getUsername, message 같이 보내주기
-//    void send() {
-//        msgStr = msg.getText().toString();
-//        Log.i(TAG, "send Method");
-//
-//        if (chatSocket != null) { // 연결된 경우에만 보내기 가능
-//            Log.i(TAG, "send Method - chatSocket != null : " + chatSocket);
-//            JSONObject data = new JSONObject(); // 서버에게 줄 데이터를 json으로 만든다
-//            Log.i(TAG, "data check : " + data);
-//
-//            try {
-//                data.put("id", uri); // 위에서 만든 json에 키와 값을 넣음
-//                data.put("user", getUsername);
-//                data.put("message", msgStr);
-//                chatSocket.emit("msg", data); // 서버에게 msg 이벤트 일어나게 함
-//
-//                chatSocket.on("msg_to_client", new Emitter.Listener() {
-//                    //서버가 msg_to_client 이벤트 일으키면 실행
-//                    @Override
-//                    public void call(Object... args) { // args에 서버가 보낸 데이터 들어감
-//                        runOnUiThread(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-//                                Log.i(TAG, "run");
-//
-//                                try {
-//                                    Log.i(TAG, "try");
-//                                    JSONObject data = (JSONObject) args[0];
-//                                    tv_text_from_server.setText(data.getString("msg1")); // 서버가 보낸 json에서 msg라는 키의 값만 텍스트뷰에 출력
-//                                    tv_text_from_server2.setText(data.getString("msg2")); // 서버가 보낸 json에서 msg2라는 키의 값만 텍스트뷰에 출력
-//                                    tv_text_from_server3.setText(data.getString("msg3"));
-//                                    btn_send.setText("BRING");
-//
-//                                } catch (Exception e) {
-//                                    Log.i(TAG, "catch : " + e);
-//                                    Toast.makeText(getApplicationContext(), e.getMessage(),
-//                                            Toast.LENGTH_LONG).show();
-//                                } // catch END
-//                            } // run END
-//                        }); // runOnUiThread END
-//                    } // call END
-//                }); // chatSocket.on END
-//
-//            } catch (Exception e) {
-//                Toast.makeText(getApplicationContext(), e.getMessage(), Toast
-//                        .LENGTH_LONG).show();
-//                e.printStackTrace();
-//            } // catch END
-//        } // if (chatSocket != null) END
+    void insertToTable() {
+        Log.i(TAG, "insert to chat_messages table");
+        //TODO Insert Chat_Info To chat_messages
+        if (uuidForChat != null) {
+            uuidKey = uuidForChat;
+            Log.i(TAG, "insert uuid : " + uuidKey);
+        } else {
+            uuidKey = insertUUID;
+            Log.i(TAG, "insert uuid : " + insertUUID);
+        }
+        me = getUsername;
+        Log.i(TAG, "insert me : " + getUsername);
+        you = getYourname;
+        Log.i(TAG, "insert you : " + getYourname);
+        from_idx = getUsername;
+        Log.i(TAG, "insert from_idx : " + getUsername);
+        // msg 값 not yet
+        msg = insertMsg;
+        Log.i(TAG, "insert msg : " + msg);
+        // 숫자 늘어나야 하눈디..
+        msg_idx = 1;
+        Log.i(TAG, "insert msg_idx : " + msg_idx);
+        // 시간 받아오슈..
+        date_time = insertTime;
+        Log.i(TAG, "insert time : " + date_time);
+        readCheck = is_read;
+        Log.i(TAG, "insert readCheck : " + readCheck);
+        image_idx = "image";
+        Log.i(TAG, "insert imageCheck : " + image_idx);
+//            addData(uuidKey, me, you, from_idx, msg, msg_idx, date_time, readCheck, image_idx);
+        insertData(uuidKey, me, you, from_idx, msg, msg_idx, date_time, readCheck, image_idx);
+    }
 
-//    } // send method END
+    void getTime() {
+        long now = System.currentTimeMillis();
+        Date date = new Date(now);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        getToday = sdf.format(date);
 
-//    void originInitialize() {
-//        //        btn_conn = findViewById(R.id.btn_con);
-////        btn_send = findViewById(R.id.btn_send);
-////        msg = findViewById(R.id.message);
-////        tv_text_con = findViewById(R.id.tv_text_conn); // 서버로부터 온 클라이언트 id 출력
-////        tv_text_from_server = findViewById(R.id.tv_text_from_server); // 서버로부터 온 msg 출력
-////        tv_text_from_server2 = findViewById(R.id.tv_text_from_server2); // 서버로부터 온 msg2 출력
-////        tv_text_from_server3 = findViewById(R.id.tv_text_from_server3); // 서버로부터 온 msg2 출력
-//    }
+        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        String getTime = sdfTime.format(date);
+        String[] reTime = getTime.split(":");
+        String hour = reTime[0];
+        String minute = reTime[1];
+        int hourToInt = Integer.parseInt(hour);
+
+        if (hourToInt >= 12) {
+            if (hourToInt > 12) {
+                hourToInt -= 12;
+            }
+            String reHour = Integer.toString(hourToInt);
+            hourNminute = "오후 " + reHour + ":" + minute;
+            getTimeToTable = "오후 " + reHour + ":" + minute;
+            Log.i(TAG, "insert hourNminute check : " + hourNminute);
+            Log.i(TAG, "insert getTimeToTable check : " + getTimeToTable);
+
+        } else {
+            if (hour.equals("00")) {
+                hour = "12";
+            }
+            hourNminute = "오전 " + hour + ":" + minute;
+            getTimeToTable = "오전 " + hour + ":" + minute;
+            Log.i(TAG, "insert hourNminute check : " + hourNminute);
+            Log.i(TAG, "insert getTimeToTable check : " + getTimeToTable);
+        } // else END
+    } // getTime Method END
+
 
 } // Main CLASS END
